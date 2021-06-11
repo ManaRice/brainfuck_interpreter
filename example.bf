@@ -21,7 +21,7 @@ Duplicate Values
 9 3 9 3 0 0 0 0 0
 ^
 
-I Cant decifer this monster
+I Cant decipher this monster
 Way to nested to do that
 [>[>>>>[-]<<<<<[->>+>>>+<<<<<]>>[-<<+>>]<[-<->>+<<[>>-<<[->>>+<<<]
 ]>>>[-<<<+>>>]<[-<[-]>]<]<[<[->>+>+<<<]>>>[-<<<+>>>]>>+<<<<[->>+<<]]>>[-<<+
