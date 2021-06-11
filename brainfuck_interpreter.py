@@ -14,7 +14,7 @@ import os
 import time
 import numpy as np
 
-TAPE_LENGTH    = 10             # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
+TAPE_LENGTH    = 10000          # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
 MAX_CELL_VALUE = 255            # Max value at each cell of the 'tape'
 RUN_SLOW       = False          # If you want the interpreter to run slower than usual. For debugging mostly
 BF_CHARSET     = "<>+-[].,"     # The brainfuck charset
@@ -47,7 +47,6 @@ def interpret(file):
     tape            = np.zeros(TAPE_LENGTH, dtype=int)      # Tape is a numpy array of ints that is prefilled with zeros
     pointer         = 0                                     # Pointer is the variable that points to a cell
     loop_depth_list = list()                                # Used as LIFO dequeue or similar to stor the indexes we want to jump to at the end of the loop
-    output          = ""                                    # Accumilates the characters the program wants to print until the end of the program
     bf_code_string  = file.read()                           # Read the file into a sting we can index character by character
     index           = 0                                     # Currently read character of the program
 
@@ -133,19 +132,15 @@ def interpret(file):
 
         # Output the currently pointed cells value as ascii char
         if char == '.':
-            output += chr(tape[pointer])
+            print(chr(tape[pointer]), end='', flush=True)
 
         # Print the current buffered output and get a char as input and appent the ascii value to the currently pointed cell
         if char == ',':
-            print(output, end='', flush=True)
-            output = ""
             tape[pointer] = ord(sys.stdin.read(1))
 
         # Read next character from bf program
         index += 1
 
-    # Print the output when done if any is there
-    print(output)
 
 if __name__ == "__main__":
     argv = sys.argv[1:]

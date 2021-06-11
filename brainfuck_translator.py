@@ -46,12 +46,11 @@ def translate(file):
 
     python_file.write("""
 import numpy as np
-TAPE_LENGTH    = 1000             # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
+TAPE_LENGTH    = 10000             # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
 
 tape            = np.zeros(TAPE_LENGTH, dtype=int)      # Tape is a numpy array of ints that is prefilled with zeros
 pointer         = 0                                     # Pointer is the variable that points to a cell
 loop_depth_list = list()                                # Used as LIFO dequeue or similar to stor the indexes we want to jump to at the end of the loop
-output          = ""                                    # Accumilates the characters the program wants to print until the end of the program
 index           = 0                                     # Currently read character of the program
 """)
 
@@ -80,7 +79,6 @@ index           = 0                                     # Currently read charact
 
         index += 1
 
-    python_file.write("print(output)")
 
     python_file.close()
 
@@ -124,13 +122,11 @@ def handle_output(file,depth):
     tabs = ""
     for i in range(depth):
         tabs += "\t"
-    file.write(f"{tabs}output += chr(tape[pointer])\n")
+    file.write(f"{tabs}print(chr(tape[pointer]), end='', flush=True)\n")
 def handle_input(file,depth):
     tabs = ""
     for i in range(depth):
         tabs += "\t"
-    file.write(f"{tabs}print(output, end='', flush=True)\n")
-    file.write(f"{tabs}output = ''\n")
     file.write(f"{tabs}tape[pointer] = ord(sys.stdin.read(1))\n")
 
 if __name__ == "__main__":
