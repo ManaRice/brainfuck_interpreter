@@ -45,6 +45,7 @@ def translate(file):
             bf_code += c
 
     python_file.write("""
+import sys
 import numpy as np
 TAPE_LENGTH    = 10000             # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
 
