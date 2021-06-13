@@ -14,7 +14,7 @@ import os
 import time
 import numpy as np
 
-TAPE_LENGTH    = 10000          # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
+TAPE_LENGTH    = 32768          # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
 MAX_CELL_VALUE = 255            # Max value at each cell of the 'tape'
 RUN_SLOW       = False          # If you want the interpreter to run slower than usual. For debugging mostly
 BF_CHARSET     = "<>+-[].,"     # The brainfuck charset
@@ -47,15 +47,10 @@ def interpret(file):
     tape            = np.zeros(TAPE_LENGTH, dtype=int)      # Tape is a numpy array of ints that is prefilled with zeros
     pointer         = 0                                     # Pointer is the variable that points to a cell
     loop_depth_list = list()                                # Used as LIFO dequeue or similar to stor the indexes we want to jump to at the end of the loop
-    bf_code_string  = file.read()                           # Read the file into a sting we can index character by character
     index           = 0                                     # Currently read character of the program
 
-    # Remove the unnessesary characters from the file
-    # Not the best code, but it works i guess
-    bf_code = ""
-    for c in bf_code_string:
-        if c in BF_CHARSET:
-            bf_code += c
+    # Create list of characters that are only the bf code
+    bf_code = [c for c in file.read() if c in BF_CHARSET]
 
     # Loop through the program until the index has surpassed the code length aka EOF
     while index < len(bf_code):
