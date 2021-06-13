@@ -2,7 +2,9 @@ import sys
 import os
 import numpy as np
 
-BF_CHARSET     = "<>+-[].,"     # The brainfuck charset
+BF_CHARSET = "<>+-[].,"     # The brainfuckk charset
+CC         = "gcc"          # The c compiler
+CC_OPTS    = "-O2"          # Compiler options
 
 def safe_open(file_path):
     f = None
@@ -13,122 +15,71 @@ def safe_open(file_path):
         print(f"Could not find file {file_path}")
         sys.exit()
 
-def safe_create(name, number=-1):
-    f = None
-    try:
-        if number < 0:
-            f = open(name, "w")
-        else:
-            f = open(f"{name}{number}", "w")
-        return f
-    except:
-        return safe_create(name, number+1)
-
 # If i want to do some kind of option support in the future
 def usage():
     print("usage:")
     print("bf <file1.bf> ")
 
 
-def translate(file):
+def translate(file, filename):
+    # Create or open exising c file with filename
+    c_file = open(f"{filename}.c", "w")
 
-    depth = 0
+    # Create list of characters that are only the bf code
+    bf_code = [c for c in file.read() if c in BF_CHARSET]
 
-    index = 0
+    # Write the c "header"
+    c_file.write(
+"""
+/*
+    Generated with ManaRice brainfuck translator
+*/
+#include <stdio.h>
 
-    python_file = safe_create("bf_program.py")
-    bf_code_string  = file.read()
+unsigned char tape[32768];
+int pointer = 0;
 
-    bf_code = ""
-    for c in bf_code_string:
-        if c in BF_CHARSET:
-            bf_code += c
-
-    python_file.write("""
-import sys
-import numpy as np
-TAPE_LENGTH    = 10000             # Length of internal 'tape'. Reffered to tape as homage to the Turing Mashine
-
-tape            = np.zeros(TAPE_LENGTH, dtype=int)      # Tape is a numpy array of ints that is prefilled with zeros
-pointer         = 0                                     # Pointer is the variable that points to a cell
-loop_depth_list = list()                                # Used as LIFO dequeue or similar to stor the indexes we want to jump to at the end of the loop
-index           = 0                                     # Currently read character of the program
+int main()
+{
 """)
 
+    # Instruction index
+    index = 0
 
     # Loop through the program until the index has surpassed the code length aka EOF
     while index < len(bf_code):
 
         char = bf_code[index] # Set char to currently read character of the bf program
 
+        # Generate c code for all the bf characters
         if char == '<':
-            handle_pointer_left(python_file,depth)
+            c_file.write("pointer--;\n")
         if char == '>':
-            handle_pointer_right(python_file,depth)
+            c_file.write("pointer++;\n")
         if char == '+':
-            handle_plus(python_file,depth)
+            c_file.write("tape[pointer]++;\n")
         if char == '-':
-            handle_minus(python_file,depth)
+            c_file.write("tape[pointer]--;\n")
         if char == '[':
-            depth = handle_open_bracket(python_file,depth)
+            c_file.write("while (tape[pointer] != 0) {\n")
         if char == ']':
-            depth -= 1
+            c_file.write("}\n")
         if char == '.':
-            handle_output(python_file,depth)
+            c_file.write("putchar(tape[pointer]);\nfflush(stdout);\n")
         if char == ',':
-            handle_input(python_file,depth)
+            c_file.write("tape[pointer] = getchar();\n")
 
         index += 1
 
+    # Write the end of main curly brace and close the file
+    c_file.write("}\n")
+    c_file.close()
 
-    python_file.close()
+# Function that compiles the code and runs the compiled file
+def run(filename):
+    os.system(f"{CC} {CC_OPTS} {filename}.c -o {filename}")
+    os.system(filename)
 
-
-
-def run():
-    os.system("python bf_program.py")
-
-def handle_pointer_left(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}pointer -= 1\n")
-
-def handle_pointer_right(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}pointer += 1\n")
-
-def handle_plus(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}tape[pointer] += 1\n")
-
-def handle_minus(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}tape[pointer] -= 1\n")
-
-def handle_open_bracket(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}while tape[pointer] != 0:\n")
-    return depth+1
-
-def handle_output(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}print(chr(tape[pointer]), end='', flush=True)\n")
-def handle_input(file,depth):
-    tabs = ""
-    for i in range(depth):
-        tabs += "\t"
-    file.write(f"{tabs}tape[pointer] = ord(sys.stdin.read(1))\n")
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
@@ -139,12 +90,15 @@ if __name__ == "__main__":
         usage()
         sys.exit()
 
+    filename, fileending = argv[0].split('.')
+
     # Open the file
     bf_file = safe_open(argv[0])
 
-    # Run interpreter
-    translate(bf_file)
-    run()
+    # Run translator
+    translate(bf_file, filename)
+    # Compile and run executable
+    run(filename)
 
     # Close the file before exit
     bf_file.close()
