@@ -30,10 +30,11 @@ def translate(file, filename):
 
     # Write the c "header"
     c_file.write(
-"""
+"""\
 /*
     Generated with ManaRice brainfuck translator
 */
+
 #include <stdio.h>
 
 unsigned char tape[32768];
