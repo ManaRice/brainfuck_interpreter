@@ -136,6 +136,7 @@ def interpret(file):
         # Read next character from bf program
         index += 1
 
+    print()
 
 if __name__ == "__main__":
     argv = sys.argv[1:]

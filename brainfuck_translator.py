@@ -73,13 +73,17 @@ int main()
         index += 1
 
     # Write the end of main curly brace and close the file
+    c_file.write("puts(\"\");\n")
     c_file.write("}\n")
     c_file.close()
 
 # Function that compiles the code and runs the compiled file
 def run(filename):
     os.system(f"{CC} {CC_OPTS} {filename}.c -o {filename}")
-    os.system(filename)
+    if os.name == "posix":
+        os.system(f"./{filename}")
+    if os.name == "nt":
+        os.system(filename)
 
 
 if __name__ == "__main__":
