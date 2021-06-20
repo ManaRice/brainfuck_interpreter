@@ -152,8 +152,8 @@ void interpret(FILE *file)
     unsigned char tape[TAPE_LENGTH];
     int pointer = 0;
 
-    printf("%s\n", code);
-    print_jumps(jumps, code_size);
+    //printf("%s\n", code);
+    //print_jumps(jumps, code_size);
 
     for (int code_index = 0; code_index < code_size; code_index++)
     {
