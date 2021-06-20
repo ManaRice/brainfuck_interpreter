@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 
     if (file == NULL)
     {
-        printf("Could not open file %s\n", argv[0]);
+        printf("Could not open file %s\n", argv[1]);
         exit(1);
     }
 
