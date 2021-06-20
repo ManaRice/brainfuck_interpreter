@@ -33,6 +33,15 @@ char *read_code(FILE *file, size_t *return_codesize)
     return code;
 }
 
+void print_jumps(int *jumps, size_t code_size)
+{
+    int index = 0;
+    while (index < code_size)
+    {
+        printf("%d ", jumps[index]);
+        index++;
+    }
+}
 
 int *prepare_jumps(char *code, size_t code_size)
 {
@@ -43,39 +52,96 @@ int *prepare_jumps(char *code, size_t code_size)
         exit(1);
     }
 
-    int code_index = 0;
-    int open_bracket_index;
-    int depth = 0;
-    for (;code_index < code_size; code_index++)
+    for (int code_index = 0; code_index < code_size; code_index++)
     {
-        if (code[code_index] != '[')
-            continue;
-
-        open_bracket_index = code_index;
-        code_index++;
-
-        while (code_index < code_size)
+        // Handle the loops
+        if (code[code_index] == '[')
         {
-            if (code[code_index] == '[')
-                depth++;
-            if (code[code_index] == ']')
-            {
-                if (depth > 0)
-                    depth--;
-                else
-                {
-                    jumps[open_bracket_index] = code_index;
-                    jumps[code_index] = open_bracket_index;
-                    code_index = open_bracket_index;
-                    break;
-                }
-            }
+            int open_bracket_index;
+            int depth = 0;
+
+            open_bracket_index = code_index;
             code_index++;
+
+            while (code_index < code_size)
+            {
+                if (code[code_index] == '[')
+                    depth++;
+                if (code[code_index] == ']')
+                {
+                    if (depth > 0)
+                        depth--;
+                    else
+                    {
+                        jumps[open_bracket_index] = code_index;
+                        jumps[code_index] = open_bracket_index;
+                        code_index = open_bracket_index;
+                        break;
+                    }
+                }
+                code_index++;
+            }
         }
+
+        // Handle pointer moves
+        if (code[code_index] == '<' ||
+            code[code_index] == '>')
+        {
+
+            if (code[code_index + 1] != '<' &&
+                code[code_index + 1] != '>')
+                continue;
+
+            int start_index = code_index;
+            int move_count = 0;
+
+            while(code[code_index] == '<' ||
+                  code[code_index] == '>')
+            {
+                  switch (code[code_index])
+                  {
+                      case '<': move_count--; break;
+                      case '>': move_count++; break;
+                  }
+                  code_index++;
+            }
+
+            jumps[start_index] = code_index - 1;
+            jumps[start_index + 1] = move_count;
+            code_index--;
+        }
+
+        // Handle increments and decrements
+        if (code[code_index] == '+' ||
+            code[code_index] == '-')
+        {
+            if (code[code_index + 1] != '+' &&
+                code[code_index + 1] != '-')
+                continue;
+
+            int start_index = code_index;
+            int increment_count = 0;
+
+            while(code[code_index] == '+' ||
+                  code[code_index] == '-')
+            {
+                  switch (code[code_index])
+                  {
+                      case '+': increment_count++; break;
+                      case '-': increment_count--; break;
+                  }
+                  code_index++;
+            }
+
+            //printf("increment_count: %d ", increment_count);
+            jumps[start_index] = code_index - 1;
+            jumps[start_index + 1] = increment_count;
+            code_index--;
+        }
+
     }
     return jumps;
 }
-
 
 void interpret(FILE *file)
 {
@@ -83,64 +149,71 @@ void interpret(FILE *file)
     char *code = read_code(file, &code_size);
     int *jumps = prepare_jumps(code, code_size);
 
-
     unsigned char tape[TAPE_LENGTH];
     int pointer = 0;
 
+    printf("%s\n", code);
+    print_jumps(jumps, code_size);
 
-    long code_index = 0;
-
-    for (;code_index < code_size; code_index++)
+    for (int code_index = 0; code_index < code_size; code_index++)
     {
         switch(code[code_index])
         {
             case '<':
-                if (pointer == 0)
-                    pointer = TAPE_LENGTH - 1;
-                else
+                if (jumps[code_index] == 0)
+                {
                     pointer--;
+                    break;
+                }
+                pointer += jumps[code_index + 1];
+                code_index = jumps[code_index];
                 break;
 
             case '>':
-                if (pointer == TAPE_LENGTH - 1)
-                    pointer = 0;
-                else
+                if (jumps[code_index] == 0)
+                {
                     pointer++;
+                    break;
+                }
+                pointer += jumps[code_index + 1];
+                code_index = jumps[code_index];
                 break;
 
             case '+':
-                if (tape[pointer] == MAX_CELL_VALUE)
-                    tape[pointer] = 0;
-                else
+                if (jumps[code_index] == 0)
+                {
                     tape[pointer]++;
+                    break;
+                }
+                tape[pointer] += jumps[code_index + 1];
+                code_index = jumps[code_index];
                 break;
 
             case '-':
-                if (tape[pointer] == 0)
-                    tape[pointer] = MAX_CELL_VALUE;
-                else
+                if (jumps[code_index] == 0)
+                {
                     tape[pointer]--;
+                    break;
+                }
+                tape[pointer] += jumps[code_index + 1];
+                code_index = jumps[code_index];
                 break;
 
             case '[':
                 if (tape[pointer] == 0)
                     code_index = jumps[code_index];
                 break;
-
             case ']':
                 if (tape[pointer] != 0)
                     code_index = jumps[code_index];
                 break;
-
             case '.':
                 putchar(tape[pointer]);
                 fflush(stdout);
                 break;
-
             case ',':
                 tape[pointer] = getchar();
                 break;
-
             default:
                 puts("Found unknown char");
                 exit(1);
@@ -148,8 +221,8 @@ void interpret(FILE *file)
         }
     }
     puts("");
+    free(jumps);
     free(code);
-
 }
 
 int main(int argc, char **argv)
