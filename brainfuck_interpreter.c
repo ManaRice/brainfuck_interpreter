@@ -6,9 +6,9 @@
 #define MAX_CELL_VALUE 255
 #define TAPE_LENGTH 32768
 
-char *read_code(FILE *file, size_t *return_codesize)
+char* read_code(FILE* file, size_t* return_codesize)
 {
-    char *code;
+    char* code;
     fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
@@ -33,7 +33,7 @@ char *read_code(FILE *file, size_t *return_codesize)
     return code;
 }
 
-void print_jumps(int *jumps, size_t code_size)
+void print_jumps(int* jumps, size_t code_size)
 {
     int index = 0;
     while (index < code_size)
@@ -43,9 +43,9 @@ void print_jumps(int *jumps, size_t code_size)
     }
 }
 
-int *prepare_jumps(char *code, size_t code_size)
+int* prepare_jumps(char* code, size_t code_size)
 {
-    int *jumps = calloc(code_size, sizeof(int));
+    int* jumps = calloc(code_size, sizeof(int));
     if (jumps == NULL)
     {
         puts("Calloc failed");
@@ -143,11 +143,11 @@ int *prepare_jumps(char *code, size_t code_size)
     return jumps;
 }
 
-void interpret(FILE *file)
+void interpret(FILE* file)
 {
     size_t code_size = 0;
-    char *code = read_code(file, &code_size);
-    int *jumps = prepare_jumps(code, code_size);
+    char* code = read_code(file, &code_size);
+    int* jumps = prepare_jumps(code, code_size);
 
     unsigned char tape[TAPE_LENGTH];
     int pointer = 0;
@@ -225,9 +225,9 @@ void interpret(FILE *file)
     free(code);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    FILE *file;
+    FILE* file;
 
     if (argc < 2)
     {
