@@ -48,7 +48,7 @@ int *prepare_jumps(char *code, size_t code_size)
     int *jumps = calloc(code_size, sizeof(int));
     if (jumps == NULL)
     {
-        puts("Malloc failed");
+        puts("Calloc failed");
         exit(1);
     }
 
